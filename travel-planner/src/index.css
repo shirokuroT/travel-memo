@@ -1,0 +1,74 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #f4f4f4;
+}
+
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.trip-card {
+  background: white;
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.trip-card a {
+  text-decoration: none;
+  color: #2563eb;
+}
+
+.trip-card a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+
+  textarea {
+    min-height: 300px;
+    font-size: 16px;
+  }
+
+  input,
+  button {
+    min-height: 48px;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
