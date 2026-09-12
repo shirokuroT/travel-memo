@@ -21,10 +21,15 @@ export const TripDetail = ({
 
 
   useEffect(() => {
-    if (trip.pages.length > 0) {
-      setSelectedPageId(trip.pages[0].id);
-    }
-  }, [trip]);
+  if (
+    !selectedPageId &&
+    trip.pages.length > 0
+  ) {
+    setSelectedPageId(
+      trip.pages[0].id
+    );
+  }
+}, [selectedPageId, trip.pages]);
 
   const currentPage =
     trip.pages.find(
