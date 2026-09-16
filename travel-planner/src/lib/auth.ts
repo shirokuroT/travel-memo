@@ -12,5 +12,5 @@ export const signInWithGoogle = async () => {
 
 export const signOut = async () => {
   await supabase.auth.signOut();
-  window.location.reload();
+  window.location.href="/";
 };
