@@ -2,8 +2,12 @@ import { supabase } from "./supabase";
 
 export const signInWithGoogle = async () => {
   await supabase.auth.signInWithOAuth({
-    provider: "google",
-  });
+  provider: "google",
+  options: {
+    redirectTo: window.location.origin,
+  },
+});
+
 };
 
 export const signOut = async () => {
