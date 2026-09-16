@@ -1,29 +1,68 @@
 import { useEffect, useState } from "react";
 import type { Trip } from "../types/Trip";
+import { supabase } from "../lib/supabase";
 
 const STORAGE_KEY = "trips";
 
 export const useTrips = () => {
   const [trips, setTrips] =
-  useState<Trip[]>(() => {
-    const savedTrips =
-      localStorage.getItem(STORAGE_KEY);
+  useState<Trip[]>([]);
 
-    if (savedTrips) {
-      return JSON.parse(savedTrips);
-    }
-
-    return [];
-  });
-
-  useEffect(() => {
-  console.log("保存対象", trips);
-
+ useEffect(() => {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(trips)
   );
+
+ const saveTrips = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  for (const trip of trips) {
+    const { data, error } =
+      await supabase
+        .from("trips")
+        .upsert({
+          id: trip.id,
+          user_id: user?.id,
+          title: trip.title,
+          data: trip,
+        });
+
+    console.log("data", data);
+    console.log("error", error);
+  }
+};
+
+  saveTrips();
 }, [trips]);
+
+useEffect(() => {
+  const loadTrips = async () => {
+    const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+const { data, error } =
+  await supabase
+    .from("trips")
+    .select("*")
+    .eq("user_id", user?.id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    const loadedTrips =
+      data.map((row) => row.data as Trip);
+
+    setTrips(loadedTrips);
+  };
+
+  loadTrips();
+}, []);
 
   const createPages = (
         startDate: string,
@@ -43,6 +82,7 @@ export const useTrips = () => {
             id: crypto.randomUUID(),
             title: "共通",
             memo: "",
+            links: [],
           },
         ];
 
@@ -51,6 +91,7 @@ export const useTrips = () => {
       id: crypto.randomUUID(),
       title: `${i}日目`,
       memo: "",
+      links: [],
     });
   }
 

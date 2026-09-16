@@ -72,3 +72,46 @@ button {
     margin-top: 4px;
   }
 }
+
+.spot-card {
+  display: block;
+  padding: 12px;
+  margin-bottom: 10px;
+
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+
+  text-decoration: none;
+  color: #2563eb;
+
+  font-weight: bold;
+  font-size: 16px;
+
+  transition: 0.15s;
+}
+
+.spot-card:hover {
+  background-color: #e2e8f0;
+}
+
+.spot-card:active {
+  background-color: #cbd5e1;
+  transform: scale(0.98);
+}
+
+.ProseMirror {
+  min-height: 300px;
+  padding: 12px;
+
+  background-color: white;
+
+  border: 1px solid #ccc;
+  border-radius: 8px;
+
+  outline: none;
+}
+
+.ProseMirror:focus {
+  border-color: #2563eb;
+}
