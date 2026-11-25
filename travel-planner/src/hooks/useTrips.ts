@@ -116,10 +116,26 @@ const { data, error } =
   setTrips((prev) => [...prev, newTrip]);
 };
 
-  const deleteTrip = (id: string) => {
+  const deleteTrip = async (id: string) => {
+    const deletedTrip = trips.find((trip) => trip.id === id);
+
+    // 先に画面から消し、Supabaseの削除に失敗したら元に戻す
     setTrips((prev) =>
       prev.filter((trip) => trip.id !== id)
     );
+
+    const { error } = await supabase
+      .from("trips")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("旅行の削除に失敗しました", error);
+      if (deletedTrip) {
+        setTrips((prev) => [...prev, deletedTrip]);
+      }
+      alert("旅行の削除に失敗しました。もう一度お試しください。");
+    }
   };
 
   const updateTrip = (updatedTrip: Trip) => {
