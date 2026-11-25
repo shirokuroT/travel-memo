@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import type { Trip } from "../types/Trip";
 import type { SaveStatus } from "../hooks/useTrips";
 import { TiptapEditor } from "./TiptapEditor";
@@ -30,22 +30,12 @@ export const TripDetail = ({
   onSaveNow,
 }: Props) => {
   const [selectedPageId, setSelectedPageId] =
-    useState("");
+    useState(trip.pages[0]?.id ?? "");
 
   const [isLinkFormOpen, setIsLinkFormOpen] =
   useState(false);
 
-
-  useEffect(() => {
-  if (
-    !selectedPageId &&
-    trip.pages.length > 0
-  ) {
-    setSelectedPageId(
-      trip.pages[0].id
-    );
-  }
-}, [selectedPageId, trip.pages]);
+  const linkFormRef = useRef<HTMLDivElement>(null);
 
 const [linkName, setLinkName] =
   useState("");
@@ -118,6 +108,26 @@ const startEditLink = (
   setLinkType(link.type);
 
   setLinkUrl(link.url);
+
+  // 閉じていてもフォームを開き、見える位置までスクロールする
+  setIsLinkFormOpen(true);
+  linkFormRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+};
+
+const cancelEditLink = () => {
+  setEditingLinkId(null);
+  setLinkName("");
+  setLinkUrl("");
+  setLinkType("place");
+};
+
+const selectPage = (pageId: string) => {
+  // 別ページのリンクを編集中のまま切り替えないよう、編集は取り消す
+  if (editingLinkId) cancelEditLink();
+  setSelectedPageId(pageId);
 };
 
 const addLink = () => {
@@ -156,9 +166,7 @@ const addLink = () => {
 
   onUpdate(updatedTrip);
 
-  setLinkName("");
-  setLinkUrl("");
-  setEditingLinkId(null);
+  cancelEditLink();
 };
 
   const updateMemo = (
@@ -196,16 +204,16 @@ const addLink = () => {
           <button
             key={page.id}
             onClick={() =>
-            setSelectedPageId(page.id)
+            selectPage(page.id)
         }
         style={{
             backgroundColor:
-            selectedPageId === page.id
+            currentPage.id === page.id
                 ? "#2563eb"
                 : "#ffffff",
 
         color:
-            selectedPageId === page.id
+            currentPage.id === page.id
                 ? "white"
                 : "black",
 
@@ -231,6 +239,7 @@ const addLink = () => {
 />
 
   <div
+  ref={linkFormRef}
   style={{
     marginTop: "24px",
     border: "1px solid #ccc",
@@ -252,7 +261,7 @@ const addLink = () => {
     {isLinkFormOpen
       ? "▼ "
       : "▶ "}
-    リンク追加
+    {editingLinkId ? "リンクを編集" : "リンク追加"}
   </h3>
 {isLinkFormOpen && (
   <>
@@ -308,8 +317,17 @@ const addLink = () => {
   <br />
 
   <button onClick={addLink}>
-  追加
+  {editingLinkId ? "更新" : "追加"}
 </button>
+
+  {editingLinkId && (
+    <button
+      onClick={cancelEditLink}
+      style={{ marginLeft: "8px" }}
+    >
+      キャンセル
+    </button>
+  )}
 </>
 )}
 </div>

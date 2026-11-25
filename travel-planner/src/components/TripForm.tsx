@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Trip } from "../types/Trip";
 import {
+  countDays,
   getRemovedPages,
   hasPageContent,
   resizePages,
@@ -37,8 +38,35 @@ export const TripForm = ({
     editingTrip?.endDate ?? ""
   );
 
+  const [error, setError] = useState("");
+
+  const formRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // 「編集」を押したらフォームまでスクロールし、旅行名にカーソルを置く
+  useEffect(() => {
+    if (!editingTrip) return;
+
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    titleInputRef.current?.focus({ preventScroll: true });
+  }, [editingTrip]);
+
+  const validate = () => {
+    if (!title.trim()) return "旅行名を入力してください";
+    if (!startDate || !endDate)
+      return "開始日と終了日を入力してください";
+    if (countDays(startDate, endDate) === null)
+      return "終了日は開始日と同じか、それより後の日付にしてください";
+    return "";
+  };
+
   const handleSubmit = () => {
-    if (!title.trim()) return;
+    const message = validate();
+    setError(message);
+    if (message) return;
 
     if (editingTrip) {
       const removedWithContent = getRemovedPages(
@@ -79,7 +107,7 @@ export const TripForm = ({
   };
 
   return (
-    <div className="form-container">
+    <div className="form-container" ref={formRef}>
       <h2>
         {editingTrip
           ? "旅行を編集"
@@ -87,6 +115,7 @@ export const TripForm = ({
       </h2>
 
       <input
+        ref={titleInputRef}
         type="text"
         placeholder="旅行名"
         value={title}
@@ -106,6 +135,7 @@ export const TripForm = ({
       <input
         type="date"
         value={endDate}
+        min={startDate || undefined}
         onChange={(e) =>
           setEndDate(e.target.value)
         }
@@ -121,6 +151,15 @@ export const TripForm = ({
         <button onClick={onCancel}>
           キャンセル
         </button>
+      )}
+
+      {error && (
+        <p
+          role="alert"
+          style={{ color: "#dc2626", margin: "8px 0 0" }}
+        >
+          {error}
+        </p>
       )}
     </div>
   );

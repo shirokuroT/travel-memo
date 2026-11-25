@@ -24,8 +24,6 @@ function App() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      console.log(user);
-
       setEmail(user?.email ?? "");
     };
 
@@ -47,8 +45,6 @@ function App() {
     Googleでログイン
   </button>
 )}
-
-      <p>{email}</p>
 
       <Routes>
         <Route
