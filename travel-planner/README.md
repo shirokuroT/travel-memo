@@ -23,7 +23,7 @@
 | 認証・データベース     | Supabase（`@supabase/supabase-js`、Google OAuth）       |
 | Lint                   | ESLint 10、typescript-eslint、React Hooks ESLint plugin |
 
-旅行データはSupabaseの`trips`テーブルから読み込まれ、変更時に保存されます。現在の実装は旅行データをブラウザーの`localStorage`にも書き出しますが、`localStorage`から復元する処理はありません。
+旅行データはSupabaseの`trips`テーブルから読み込まれ、変更した旅行だけが入力の区切り（約0.8秒）で自動保存されます。旅行の詳細画面には保存状態（編集中／保存中／保存済み／失敗）が表示され、「保存」ボタンで即時保存や失敗時の再試行ができます。
 
 ## セットアップ
 

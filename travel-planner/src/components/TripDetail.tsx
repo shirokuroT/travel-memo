@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
 import type { Trip } from "../types/Trip";
+import type { SaveStatus } from "../hooks/useTrips";
 import { TiptapEditor } from "./TiptapEditor";
 
 type Props = {
   trip: Trip;
   onUpdate: (trip: Trip) => void;
+  saveStatus: SaveStatus;
+  onSaveNow: () => Promise<void>;
+};
+
+const SAVE_STATUS_LABEL: Record<
+  SaveStatus,
+  { text: string; color: string }
+> = {
+  saved: { text: "保存済み ✅", color: "#16a34a" },
+  pending: { text: "編集中...", color: "#d97706" },
+  saving: { text: "保存中...", color: "#2563eb" },
+  error: {
+    text: "保存に失敗しました。「保存」を押して再試行してください",
+    color: "#dc2626",
+  },
 };
 
 export const TripDetail = ({
   trip,
   onUpdate,
+  saveStatus,
+  onSaveNow,
 }: Props) => {
   const [selectedPageId, setSelectedPageId] =
     useState("");
 
-  const [savedMessage, setSavedMessage] =
-    useState("");
-
-  const [isDirty, setIsDirty] =
-    useState(false);
-  
   const [isLinkFormOpen, setIsLinkFormOpen] =
   useState(false);
 
@@ -153,8 +165,6 @@ const addLink = () => {
     pageId: string,
     memo: string
   ) => {
-    setIsDirty(true);
-    
     const updatedTrip: Trip = {
       ...trip,
       pages: trip.pages.map((page) =>
@@ -167,16 +177,7 @@ const addLink = () => {
     onUpdate(updatedTrip);
   };
 
-  const handleSave = () => {
-    
-    setIsDirty(false);
-
-    setSavedMessage("保存しました ✅");
-
-    setTimeout(() => {
-      setSavedMessage("");
-    }, 2000);
-  };
+  const statusLabel = SAVE_STATUS_LABEL[saveStatus];
 
 
   return (
@@ -409,17 +410,13 @@ const addLink = () => {
 </div>
 
       <p
-  style={{
-    color: isDirty
-      ? "#dc2626"
-      : "#16a34a",
-    fontWeight: "bold",
-  }}
->
-  {isDirty
-    ? "編集中..."
-    : "保存済み ✅"}
-</p>
+        style={{
+          color: statusLabel.color,
+          fontWeight: "bold",
+        }}
+      >
+        {statusLabel.text}
+      </p>
 
       <div
         style={{
@@ -427,22 +424,12 @@ const addLink = () => {
         }}
       >
         <button
-          onClick={handleSave}
+          onClick={() => void onSaveNow()}
+          disabled={saveStatus === "saved"}
         >
           保存
         </button>
       </div>
-
-      {savedMessage && (
-        <p
-          style={{
-            color: "green",
-            fontWeight: "bold",
-          }}
-        >
-          {savedMessage}
-        </p>
-      )}
     </div>
   );
 };

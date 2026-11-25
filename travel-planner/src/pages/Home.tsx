@@ -17,21 +17,35 @@ export default function Home() {
     updateTrip,
   } = useTrips();
 
+  const handleUpdate = (trip: Trip) => {
+    updateTrip(trip);
+    setEditingTrip(null);
+  };
+
+  const handleDelete = (id: string) => {
+    if (editingTrip?.id === id) {
+      setEditingTrip(null);
+    }
+    deleteTrip(id);
+  };
+
   return (
     <div className="container">
       <h1>✈️ Travel Memo</h1>
 
       <TripForm
+        key={editingTrip?.id ?? "new"}
         onAdd={addTrip}
         editingTrip={editingTrip}
-        onUpdate={updateTrip}
+        onUpdate={handleUpdate}
+        onCancel={() => setEditingTrip(null)}
       />
 
       <hr />
 
       <TripList
         trips={trips}
-        onDelete={deleteTrip}
+        onDelete={handleDelete}
         onEdit={setEditingTrip}
       />
     </div>

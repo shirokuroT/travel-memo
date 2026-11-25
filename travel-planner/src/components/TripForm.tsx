@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Trip } from "../types/Trip";
+import {
+  getRemovedPages,
+  hasPageContent,
+  resizePages,
+} from "../lib/tripPages";
 
 type Props = {
   onAdd: (
@@ -11,46 +16,66 @@ type Props = {
   editingTrip: Trip | null;
 
   onUpdate: (trip: Trip) => void;
+
+  onCancel: () => void;
 };
 
 export const TripForm = ({
   onAdd,
   editingTrip,
   onUpdate,
+  onCancel,
 }: Props) => {
-  const [title, setTitle] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
-  useEffect(() => {
-    if (editingTrip) {
-      setTitle(editingTrip.title);
-      setStartDate(editingTrip.startDate);
-      setEndDate(editingTrip.endDate);
-    }
-  }, [editingTrip]);
+  // 編集対象が変わると Home の key でフォームが作り直され、ここで初期値が入る
+  const [title, setTitle] = useState(
+    editingTrip?.title ?? ""
+  );
+  const [startDate, setStartDate] = useState(
+    editingTrip?.startDate ?? ""
+  );
+  const [endDate, setEndDate] = useState(
+    editingTrip?.endDate ?? ""
+  );
 
   const handleSubmit = () => {
     if (!title.trim()) return;
 
     if (editingTrip) {
+      const removedWithContent = getRemovedPages(
+        editingTrip.pages,
+        startDate,
+        endDate
+      ).filter(hasPageContent);
+
+      if (
+        removedWithContent.length > 0 &&
+        !window.confirm(
+          `日数が減るため、${removedWithContent
+            .map((page) => page.title)
+            .join("、")}のメモとリンクが削除されます。よろしいですか？`
+        )
+      ) {
+        return;
+      }
+
       onUpdate({
         ...editingTrip,
         title,
         startDate,
         endDate,
+        pages: resizePages(
+          editingTrip.pages,
+          startDate,
+          endDate
+        ),
       });
     } else {
-      onAdd(
-        title,
-        startDate,
-        endDate
-      );
-    }
+      onAdd(title, startDate, endDate);
 
-    setTitle("");
-    setStartDate("");
-    setEndDate("");
+      setTitle("");
+      setStartDate("");
+      setEndDate("");
+    }
   };
 
   return (
@@ -91,6 +116,12 @@ export const TripForm = ({
           ? "更新"
           : "保存"}
       </button>
+
+      {editingTrip && (
+        <button onClick={onCancel}>
+          キャンセル
+        </button>
+      )}
     </div>
   );
 };
