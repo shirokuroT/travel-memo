@@ -1,102 +1,82 @@
 # Travel Memo
 
-旅行の計画を登録・編集・削除し、日程ごとのメモを管理できるReactアプリです。
+旅行の予定、日程ごとのメモ、場所やルートへのリンクをまとめて管理する旅行プランナーです。
 
-## プロジェクト概要
+## 主な機能
 
-このアプリは、旅行ごとにタイトル・日程・メモページを持つ旅行管理ツールとして構成されています。
+- 旅行の作成、編集、削除
+- 旅行期間に応じた「共通」ページと日別ページの作成
+- Tiptapを使ったリッチテキストメモの編集
+- ページごとの場所・ルート・Webサイトのリンク管理
+- Googleアカウントでのログイン／ログアウト
+- Supabaseへの旅行データ保存
 
-- 旅行の新規作成
-- 既存旅行の編集
-- 旅行の削除
-- 日程ごとのページ生成
-- 各ページでのリッチテキストメモ作成
-- ブラウザの localStorage への保存
+## 技術スタック
 
-## 技術構成
+| 分類                   | 技術                                                    |
+| ---------------------- | ------------------------------------------------------- |
+| UI                     | React 19、React DOM                                     |
+| 言語                   | TypeScript                                              |
+| 開発・ビルド           | Vite 8、`@vitejs/plugin-react`                          |
+| ルーティング           | React Router 7                                          |
+| リッチテキストエディタ | Tiptap 3（`@tiptap/react`、`@tiptap/starter-kit`）      |
+| 認証・データベース     | Supabase（`@supabase/supabase-js`、Google OAuth）       |
+| Lint                   | ESLint 10、typescript-eslint、React Hooks ESLint plugin |
 
-### フロントエンド
+旅行データはSupabaseの`trips`テーブルから読み込まれ、変更時に保存されます。現在の実装は旅行データをブラウザーの`localStorage`にも書き出しますが、`localStorage`から復元する処理はありません。
 
-- React 19
-- TypeScript
-- Vite
+## セットアップ
 
-### ルーティング
+### 必要な設定
 
-- react-router-dom
-  - `/` : 旅行一覧画面
-  - `/trip/:id` : 旅行詳細画面
+1. Supabaseプロジェクトを用意し、AuthenticationでGoogleログインを有効にします。
+2. Supabase SQL Editorで次のテーブルを作成します。
 
-### エディタ
+```sql
+create table public.trips (
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null,
+  data jsonb not null
+);
 
-- Tiptap
-  - @tiptap/react
-  - @tiptap/starter-kit
-- 日程ごとのメモ入力には Tiptap のエディタを利用しています。
+alter table public.trips enable row level security;
 
-### 状態管理・永続化
-
-- カスタムフック `useTrips` で旅行データを管理
-- `localStorage` に JSON 形式で保存し、ページ再読み込み後もデータを保持
-
-### 開発ツール
-
-- ESLint
-- TypeScript
-- Vite Dev Server / Build
-
-## 主要ディレクトリ
-
-```text
-travel-planner/
-├── public/
-├── src/
-│   ├── components/
-│   │   ├── TiptapEditor.tsx
-│   │   ├── TripDetail.tsx
-│   │   ├── TripForm.tsx
-│   │   └── TripList.tsx
-│   ├── hooks/
-│   │   └── useTrips.ts
-│   ├── pages/
-│   │   ├── Home.tsx
-│   │   └── TripPage.tsx
-│   ├── types/
-│   │   └── Trip.ts
-│   ├── App.tsx
-│   ├── index.css
-│   ├── main.tsx
-│   └── assets/
-├── package.json
-├── tsconfig.json
-├── tsconfig.app.json
-├── tsconfig.node.json
-├── vite.config.ts
-├── eslint.config.js
-└── README.md
+create policy "Users can manage their own trips"
+  on public.trips
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 ```
 
-## 開発手順
+3. プロジェクトのルートに`.env.local`を作成し、SupabaseのProject URLとpublishable keyを設定します。
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-publishable-key
+```
+
+Supabaseの認証設定で、開発時は`http://localhost:5173`を許可されたリダイレクトURLに追加してください。`.env.local`はGitにコミットしないでください。
+
+### 起動
 
 ```bash
 npm install
 npm run dev
 ```
 
-## ビルド
+## コマンド
 
 ```bash
-npm run build
+npm run dev      # 開発サーバー
+npm run build    # 型チェックと本番ビルド
+npm run preview  # 本番ビルドのプレビュー
+npm run lint     # ESLint
 ```
 
-## Lint
+## 画面と構成
 
-```bash
-npm run lint
-```
+- `/` : 旅行一覧と作成・編集
+- `/trip/:id` : 旅行の詳細、日別メモ、リンク管理
 
-## 補足
-
-- 画面の遷移は `react-router-dom` を使用しています。
-- 旅行のメモは HTML 形式で保持され、 Tiptap が表示・編集を担当しています。
-- 現在の実装では、保存先はブラウザの `localStorage` であり、バックエンドは実装されていません。
+主な実装は`src/components/`（画面部品）、`src/hooks/useTrips.ts`（旅行データの取得・更新）、`src/lib/`（Supabaseと認証）、`src/pages/`（ページ）にあります。
